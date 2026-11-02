@@ -1,0 +1,726 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Buckingham Palace 3D | The Sovereign's Residence & Tourist Guide</title>
+  <meta name="description" content="Explore an interactive 3D model of Buckingham Palace, the Queen Victoria Memorial, Changing of the Guard, and a comprehensive tourist guide for London visitors.">
+
+  <!-- Royal Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;700;800;900&family=Playfair+Display:ital,wght@0,500;0,700;1,400&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+
+  <!-- FontAwesome 6 Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+  <!-- Stylesheet -->
+  <link rel="stylesheet" href="styles.css">
+
+  <!-- Three.js & Libraries (CDN with fallback support) -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/tween.js/18.6.4/tween.umd.js"></script>
+</head>
+<body>
+
+  <!-- SITE HEADER & NAVIGATION -->
+  <header class="site-header">
+    <div class="brand-wrapper">
+      <i class="fa-solid fa-crown royal-crest-icon"></i>
+      <div class="brand-text">
+        <h1>BUCKINGHAM PALACE</h1>
+        <p>The Sovereign's London Residence</p>
+      </div>
+    </div>
+
+    <!-- Navigation Tabs -->
+    <nav aria-label="Main Navigation">
+      <ul class="nav-tab-list">
+        <li>
+          <button class="nav-tab-btn active" data-nav-tab="explorer">
+            <i class="fa-solid fa-cube"></i> 3D Palace
+          </button>
+        </li>
+        <li>
+          <button class="nav-tab-btn" data-nav-tab="guard">
+            <i class="fa-solid fa-shield-halved"></i> Guard Mounting
+          </button>
+        </li>
+        <li>
+          <button class="nav-tab-btn" data-nav-tab="staterooms">
+            <i class="fa-solid fa-landmark"></i> State Rooms
+          </button>
+        </li>
+        <li>
+          <button class="nav-tab-btn" data-nav-tab="tickets">
+            <i class="fa-solid fa-ticket"></i> Tickets & Hours
+          </button>
+        </li>
+        <li>
+          <button class="nav-tab-btn" data-nav-tab="transport">
+            <i class="fa-solid fa-train-subway"></i> Getting Here
+          </button>
+        </li>
+        <li>
+          <button class="nav-tab-btn" data-nav-tab="quiz">
+            <i class="fa-solid fa-award"></i> Secrets & Quiz
+          </button>
+        </li>
+      </ul>
+    </nav>
+
+    <!-- Header Actions & Royal Status -->
+    <div class="header-actions">
+      <!-- Live Sovereign Status Pill -->
+      <span class="sovereign-status-badge in-residence" title="Toggle sovereign residence status in 3D scene">
+        His Majesty: In Residence
+      </span>
+
+      <!-- Royal Fanfare Button -->
+      <button class="icon-btn-header" id="btn-play-fanfare" title="Play Ceremonial Brass Fanfare">
+        <i class="fa-solid fa-bullhorn"></i> Fanfare
+      </button>
+
+      <!-- London Audio Ambiance Toggle -->
+      <button class="icon-btn-header" id="btn-sound-toggle" title="Toggle London Park Birds & Breeze Ambiance">
+        <i class="fa-solid fa-volume-high"></i> <span class="sound-label">Audio: Off</span>
+      </button>
+    </div>
+  </header>
+
+  <!-- MAIN VIEWPORT & CONTENT SECTIONS -->
+  <main class="main-content">
+
+    <!-- ====================================================================
+         SECTION 1: 3D INTERACTIVE PALACE EXPLORER
+         ==================================================================== -->
+    <section id="section-explorer" class="app-section active">
+      <div class="explorer-viewport-wrapper">
+
+        <!-- 3D WebGL Canvas Container -->
+        <div id="webgl-container"></div>
+
+        <!-- 3D Hotspots Screen Layer -->
+        <div id="hotspots-layer"></div>
+
+        <!-- TOP RIGHT: Lighting & Flag HUD -->
+        <div class="hud-panel hud-lighting-controls">
+          <div class="hud-group-title"><i class="fa-solid fa-sun"></i> Time of Day</div>
+          <div class="btn-pill-group">
+            <button class="btn-pill active" data-lighting="day">
+              <i class="fa-solid fa-sun"></i> Day
+            </button>
+            <button class="btn-pill" data-lighting="sunset">
+              <i class="fa-solid fa-cloud-sun"></i> Golden
+            </button>
+            <button class="btn-pill" data-lighting="night">
+              <i class="fa-solid fa-moon"></i> Gala Night
+            </button>
+          </div>
+
+          <div class="hud-group-title" style="margin-top: 0.5rem;"><i class="fa-solid fa-flag"></i> Sovereign Flag</div>
+          <div class="btn-pill-group">
+            <button class="btn-pill active" data-flag-type="royal" title="Flown when The King is inside the palace">
+              👑 Royal Standard
+            </button>
+            <button class="btn-pill" data-flag-type="union" title="Flown when The King is away from the palace">
+              🇬🇧 Union Jack
+            </button>
+          </div>
+        </div>
+
+        <!-- BOTTOM CENTER: Camera Presets HUD -->
+        <div class="hud-panel hud-camera-presets">
+          <button class="camera-preset-btn active" data-camera-preset="facade">
+            <i class="fa-solid fa-image"></i> Grand Facade
+          </button>
+          <button class="camera-preset-btn" data-camera-preset="balcony">
+            <i class="fa-solid fa-crown"></i> Royal Balcony
+          </button>
+          <button class="camera-preset-btn" data-camera-preset="guard">
+            <i class="fa-solid fa-user-shield"></i> Changing of Guard
+          </button>
+          <button class="camera-preset-btn" data-camera-preset="memorial">
+            <i class="fa-solid fa-monument"></i> Victoria Memorial
+          </button>
+          <button class="camera-preset-btn" data-camera-preset="birds_eye">
+            <i class="fa-solid fa-mountain"></i> Aerial Estate
+          </button>
+          <button class="camera-preset-btn" data-camera-preset="pedestrian">
+            <i class="fa-solid fa-person-walking"></i> Walk Forecourt
+          </button>
+        </div>
+
+        <!-- BOTTOM LEFT: Orbit Controls Hint -->
+        <div class="hud-panel hud-controls-hint">
+          <i class="fa-solid fa-circle-info"></i>
+          <span><strong>Left-Click & Drag</strong> to rotate | <strong>Right-Click</strong> to pan | <strong>Scroll</strong> to zoom | Click pulsing pins to explore</span>
+        </div>
+
+        <!-- BOTTOM RIGHT: Actions (Auto Rotate & Fullscreen) -->
+        <div class="hud-panel hud-extra-actions">
+          <button class="icon-action-btn" id="btn-auto-rotate" title="Toggle Auto Panoramic Orbit">
+            <i class="fa-solid fa-rotate"></i>
+          </button>
+          <button class="icon-action-btn" id="btn-fullscreen" title="Toggle Fullscreen 3D View">
+            <i class="fa-solid fa-expand"></i>
+          </button>
+        </div>
+
+        <!-- SLIDE-OUT TOURIST INFORMATION DRAWER -->
+        <aside id="tourist-info-drawer" class="tourist-drawer" aria-label="Tourist Information Details">
+          <div class="drawer-header">
+            <div>
+              <div class="drawer-header-meta">
+                <span class="drawer-tag" id="drawer-category">Iconic Landmark</span>
+                <span class="drawer-badge-pill" id="drawer-badge">Top Attraction</span>
+              </div>
+              <h3 id="drawer-title">The Royal Balcony</h3>
+            </div>
+            <button class="btn-drawer-close" id="btn-close-drawer" aria-label="Close details drawer">
+              <i class="fa-solid fa-xmark"></i>
+            </button>
+          </div>
+
+          <div class="drawer-body">
+            <div class="drawer-content-text" id="drawer-content">
+              <!-- Dynamically populated from palace-model.js -->
+            </div>
+
+            <!-- Insider Tip Callout Box -->
+            <div class="drawer-tip-box">
+              <i class="fa-solid fa-lightbulb"></i>
+              <div>
+                <strong>Insider Visitor Tip</strong>
+                <p id="drawer-tip-text">Arrive early to secure the best vantage point.</p>
+              </div>
+            </div>
+          </div>
+        </aside>
+
+      </div>
+    </section>
+
+    <!-- ====================================================================
+         SECTION 2: CHANGING OF THE GUARD (GUARD MOUNTING)
+         ==================================================================== -->
+    <section id="section-guard" class="app-section">
+      <div class="guide-container">
+        <header class="guide-hero-banner">
+          <span class="guide-hero-badge"><i class="fa-solid fa-shield-halved"></i> British Pageantry</span>
+          <h2 class="guide-hero-title">Changing of <span>The Guard</span></h2>
+          <p class="guide-hero-desc">
+            Also known as Guard Mounting, this historic ceremony dates back to 1660 and showcases the elite Foot Guards of the Household Division carrying out their solemn royal duty.
+          </p>
+          <div class="search-bar-wrapper">
+            <i class="fa-solid fa-magnifying-glass search-icon"></i>
+            <input type="text" class="search-input" id="tourist-search-input" placeholder="Search ceremony times, regiments, viewing spots...">
+          </div>
+        </header>
+
+        <!-- Ceremony Overview Cards -->
+        <div class="cards-grid-3">
+          <div class="royal-card" data-search-item>
+            <div class="card-icon-pill"><i class="fa-regular fa-clock"></i></div>
+            <h3 class="card-title">Ceremony Schedule</h3>
+            <p class="card-desc">Guard Mounting takes place at Buckingham Palace on scheduled mornings throughout the year.</p>
+            <ul class="card-details-list">
+              <li><i class="fa-solid fa-check"></i> <strong>Days:</strong> Mon, Wed, Fri & Sun (Summer: Daily)</li>
+              <li><i class="fa-solid fa-check"></i> <strong>Forecourt Time:</strong> 11:00 AM sharp</li>
+              <li><i class="fa-solid fa-check"></i> <strong>Duration:</strong> Approx. 45 minutes</li>
+              <li><i class="fa-solid fa-triangle-exclamation"></i> <strong>Weather Note:</strong> Cancelled in heavy rain</li>
+            </ul>
+          </div>
+
+          <div class="royal-card" data-search-item>
+            <div class="card-icon-pill"><i class="fa-solid fa-map-pin"></i></div>
+            <h3 class="card-title">Best Vantage Points</h3>
+            <p class="card-desc">Where to stand for the clearest views of the soldiers, horses, and regimental brass bands.</p>
+            <ul class="card-details-list">
+              <li><i class="fa-solid fa-star"></i> <strong>Victoria Memorial Steps:</strong> Elevated panoramic sightlines</li>
+              <li><i class="fa-solid fa-star"></i> <strong>Palace Forecourt Gates:</strong> Close-up view of the inspection</li>
+              <li><i class="fa-solid fa-star"></i> <strong>The Mall / Spur Road:</strong> Watch bands marching in formation</li>
+              <li><i class="fa-solid fa-star"></i> <strong>Friary Court (St James's):</strong> Less crowded inspection at 10:30 AM</li>
+            </ul>
+          </div>
+
+          <div class="royal-card" data-search-item>
+            <div class="card-icon-pill"><i class="fa-solid fa-circle-exclamation"></i></div>
+            <h3 class="card-title">Essential Visitor Advice</h3>
+            <p class="card-desc">Crucial practical tips to make your experience comfortable and safe.</p>
+            <ul class="card-details-list">
+              <li><i class="fa-solid fa-arrow-right"></i> <strong>Arrival Time:</strong> Arrive by 10:15 AM (45 mins early)</li>
+              <li><i class="fa-solid fa-arrow-right"></i> <strong>Admission:</strong> 100% Free to watch from outside gates</li>
+              <li><i class="fa-solid fa-arrow-right"></i> <strong>Security:</strong> Be vigilant with phones and wallets in crowds</li>
+              <li><i class="fa-solid fa-arrow-right"></i> <strong>Restrooms:</strong> Public toilets available in St James's Park</li>
+            </ul>
+          </div>
+        </div>
+
+        <!-- Ceremony Step-by-Step Timeline -->
+        <h3 class="royal-title" style="text-align: center; margin-bottom: 2rem; font-size: 1.8rem;">Ceremony Timeline Breakdown</h3>
+        <div class="timeline-stepper">
+          <div class="timeline-step-item" data-search-item>
+            <div class="step-time-badge">10:30 AM • ST JAMES'S PALACE</div>
+            <div class="step-card">
+              <h4>Inspection of the Old Guard Detachment</h4>
+              <p>The Captain of the Queen's/King's Guard inspects the St James's Palace detachment at Friary Court before stepping off accompanied by the Corps of Drums or regimental band.</p>
+            </div>
+          </div>
+
+          <div class="timeline-step-item" data-search-item>
+            <div class="step-time-badge">10:45 AM • WELLINGTON BARRACKS</div>
+            <div class="step-card">
+              <h4>The New Guard Departs</h4>
+              <p>Formed on Birdcage Walk, the New Guard receives their Regimental Colours and marches proudly down Spur Road toward Buckingham Palace led by a full military brass band playing traditional marches and pop favorites.</p>
+            </div>
+          </div>
+
+          <div class="timeline-step-item" data-search-item>
+            <div class="step-time-badge">11:00 AM • BUCKINGHAM PALACE FORECOURT</div>
+            <div class="step-card">
+              <h4>The Royal Handover Ceremony</h4>
+              <p>The New Guard enters the North Gate into the palace forecourt. The Old Guard presents arms, and the Captains advance to symbolically hand over the Keys of the Palace.</p>
+            </div>
+          </div>
+
+          <div class="timeline-step-item" data-search-item>
+            <div class="step-time-badge">11:15 AM - 11:35 AM • PARADE GROUND</div>
+            <div class="step-card">
+              <h4>Musical Performance & Sentry Relief</h4>
+              <p>While the sentry boxes are relieved, the military band stands in the centre of the forecourt entertaining the gathered crowds with an eclectic repertoire ranging from classic military marches to West End musical anthems.</p>
+            </div>
+          </div>
+
+          <div class="timeline-step-item" data-search-item>
+            <div class="step-time-badge">11:45 AM • DISMISSAL</div>
+            <div class="step-card">
+              <h4>Old Guard Marches Off</h4>
+              <p>The relieved Old Guard marches out of the Centre Gates to return to Wellington Barracks. The New Guard takes up their posts for the next 24 or 48 hours.</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- How to Identify the 5 Regiments of Foot Guards -->
+        <h3 class="royal-title" style="text-align: center; margin: 4rem 0 1rem; font-size: 1.8rem;">How to Identify the 5 Regiments of Foot Guards</h3>
+        <p style="text-align: center; color: #a4b5d4; margin-bottom: 2.5rem;">Look closely at the buttons on their scarlet tunics and the colored plume on their black bearskin caps!</p>
+
+        <div class="regiments-grid">
+          <div class="regiment-card" data-search-item>
+            <span class="regiment-plume-tag" style="background: #ffffff; color: #000;">White Plume (Left)</span>
+            <h4>Grenadier Guards</h4>
+            <p><strong>Buttons:</strong> Single, evenly spaced<br><strong>Motto:</strong> <em>Honi soit qui mal y pense</em></p>
+          </div>
+          <div class="regiment-card" data-search-item>
+            <span class="regiment-plume-tag" style="background: #c8102e; color: #fff;">Red Plume (Right)</span>
+            <h4>Coldstream Guards</h4>
+            <p><strong>Buttons:</strong> In pairs (2 by 2)<br><strong>Motto:</strong> <em>Nulli Secundus</em> (Second to None)</p>
+          </div>
+          <div class="regiment-card" data-search-item>
+            <span class="regiment-plume-tag" style="background: #555; color: #fff;">No Plume</span>
+            <h4>Scots Guards</h4>
+            <p><strong>Buttons:</strong> In threes (3 by 3)<br><strong>Motto:</strong> <em>Nemo Me Impune Lacessit</em></p>
+          </div>
+          <div class="regiment-card" data-search-item>
+            <span class="regiment-plume-tag" style="background: #0066cc; color: #fff;">St Patrick's Blue (Right)</span>
+            <h4>Irish Guards</h4>
+            <p><strong>Buttons:</strong> In fours (4 by 4)<br><strong>Motto:</strong> <em>Quis Separabit</em> (Who shall separate us?)</p>
+          </div>
+          <div class="regiment-card" data-search-item>
+            <span class="regiment-plume-tag" style="background: #009944; color: #fff;">White & Green (Left)</span>
+            <h4>Welsh Guards</h4>
+            <p><strong>Buttons:</strong> In fives (5 by 5)<br><strong>Motto:</strong> <em>Cymru am Byth</em> (Wales Forever)</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ====================================================================
+         SECTION 3: INSIDE THE 19 STATE ROOMS
+         ==================================================================== -->
+    <section id="section-staterooms" class="app-section">
+      <div class="guide-container">
+        <header class="guide-hero-banner">
+          <span class="guide-hero-badge"><i class="fa-solid fa-crown"></i> Interior Splendour</span>
+          <h2 class="guide-hero-title">The 19 <span>State Rooms</span></h2>
+          <p class="guide-hero-desc">
+            Discover the opulent ceremonial rooms where monarchs have entertained global heads of state, held royal investitures, and hosted lavish banquets for over two centuries.
+          </p>
+        </header>
+
+        <div class="cards-grid-3">
+          <div class="royal-card" data-search-item>
+            <div class="card-icon-pill"><i class="fa-solid fa-stairs"></i></div>
+            <h3 class="card-title">1. The Grand Staircase</h3>
+            <p class="card-desc">Designed by architect John Nash for King George IV in the 1820s, featuring magnificent gilded bronze acanthus balustrades and an exquisite glass dome ceiling.</p>
+            <ul class="card-details-list">
+              <li><i class="fa-solid fa-feather"></i> <strong>Architect:</strong> John Nash (1825)</li>
+              <li><i class="fa-solid fa-gem"></i> <strong>Features:</strong> Gilded bronze floral casting, family portraits</li>
+            </ul>
+          </div>
+
+          <div class="royal-card" data-search-item>
+            <div class="card-icon-pill"><i class="fa-solid fa-chair"></i></div>
+            <h3 class="card-title">2. The Throne Room</h3>
+            <p class="card-desc">Draped in royal crimson damask, this ceremonial hall contains the single-step dais holding the original Chairs of Estate used at the coronations of Queen Elizabeth II and King Charles III.</p>
+            <ul class="card-details-list">
+              <li><i class="fa-solid fa-crown"></i> <strong>Use:</strong> Royal addresses, wedding photo portraits</li>
+              <li><i class="fa-solid fa-shield"></i> <strong>Ceiling:</strong> Frieze depicting the Wars of the Roses</li>
+            </ul>
+          </div>
+
+          <div class="royal-card" data-search-item>
+            <div class="card-icon-pill"><i class="fa-solid fa-door-open"></i></div>
+            <h3 class="card-title">3. The White Drawing Room</h3>
+            <p class="card-desc">Perhaps the most famous room in the palace, decorated in white and gold French neo-classical splendour. It features a cunning secret door disguised as a mirror and console table!</p>
+            <ul class="card-details-list">
+              <li><i class="fa-solid fa-key"></i> <strong>Secret Door:</strong> Used by The King to enter directly from private apartments</li>
+              <li><i class="fa-solid fa-clock"></i> <strong>Furnishings:</strong> English giltwood and Sèvres porcelain</li>
+            </ul>
+          </div>
+
+          <div class="royal-card" data-search-item>
+            <div class="card-icon-pill"><i class="fa-solid fa-wine-glass"></i></div>
+            <h3 class="card-title">4. The Grand Ballroom</h3>
+            <p class="card-desc">Added by Queen Victoria in 1855, it is the largest room in the palace (36m long). It is the setting for State Banquets where up to 170 guests dine on historic silver-gilt services.</p>
+            <ul class="card-details-list">
+              <li><i class="fa-solid fa-users"></i> <strong>Capacity:</strong> 170 banquet seats; 1,000 investiture guests</li>
+              <li><i class="fa-solid fa-lightbulb"></i> <strong>First Event:</strong> Crimean War victory ball in 1856</li>
+            </ul>
+          </div>
+
+          <div class="royal-card" data-search-item>
+            <div class="card-icon-pill"><i class="fa-solid fa-palette"></i></div>
+            <h3 class="card-title">5. The Picture Gallery</h3>
+            <p class="card-desc">A 47-metre long gallery purpose-built to exhibit masterpieces from the world-renowned Royal Collection, naturally lit by continuous glazed roof lanterns.</p>
+            <ul class="card-details-list">
+              <li><i class="fa-solid fa-paint-brush"></i> <strong>Master Artists:</strong> Rembrandt, Vermeer, Titian, Rubens, Canaletto</li>
+              <li><i class="fa-solid fa-arrows-rotate"></i> <strong>Display:</strong> Artworks rotated periodically from royal reserves</li>
+            </ul>
+          </div>
+
+          <div class="royal-card" data-search-item>
+            <div class="card-icon-pill"><i class="fa-solid fa-music"></i></div>
+            <h3 class="card-title">6. The Music Room</h3>
+            <p class="card-desc">With sixteen dramatic blue scagliola columns and an intricately inlaid parquet floor made of satinwood, tulipwood, and rosewood, this room has hosted royal christenings for generations.</p>
+            <ul class="card-details-list">
+              <li><i class="fa-solid fa-droplet"></i> <strong>Royal Christenings:</strong> King Charles III, Princess Anne, Prince William</li>
+              <li><i class="fa-solid fa-archway"></i> <strong>Architecture:</strong> Large bay window overlooking the royal garden</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ====================================================================
+         SECTION 4: TICKETS, DATES & SUMMER OPENING
+         ==================================================================== -->
+    <section id="section-tickets" class="app-section">
+      <div class="guide-container">
+        <header class="guide-hero-banner">
+          <span class="guide-hero-badge"><i class="fa-solid fa-ticket"></i> Visitor Information</span>
+          <h2 class="guide-hero-title">Tickets & <span>Summer Opening</span></h2>
+          <p class="guide-hero-desc">
+            The State Rooms are open to the public every summer while The King travels to Balmoral. Official tickets are managed by the Royal Collection Trust.
+          </p>
+        </header>
+
+        <!-- Pricing Tiers Grid -->
+        <div class="pricing-grid">
+          <!-- Standard State Rooms -->
+          <div class="pricing-card" data-search-item>
+            <div class="price-header">
+              <h3>The State Rooms</h3>
+              <div class="price-amount">£32.00</div>
+              <div class="price-sub">Adult ticket (In Advance) • Youths 18-24: £20.50</div>
+            </div>
+            <ul class="price-features">
+              <li><i class="fa-solid fa-circle-check"></i> Self-guided tour of all 19 State Rooms</li>
+              <li><i class="fa-solid fa-circle-check"></i> Complimentary multimedia audio guide</li>
+              <li><i class="fa-solid fa-circle-check"></i> Access to annual special summer exhibition</li>
+              <li><i class="fa-solid fa-circle-check"></i> Garden terrace cafe and gift shop access</li>
+              <li><i class="fa-solid fa-circle-check"></i> Free 1-Year Pass conversion</li>
+            </ul>
+            <a href="https://www.rct.uk/visit/buckingham-palace" target="_blank" rel="noopener noreferrer" class="btn-book-ticket">
+              Book on Official Site
+            </a>
+          </div>
+
+          <!-- Featured: Royal Day Out -->
+          <div class="pricing-card featured" data-search-item>
+            <span class="pricing-badge-popular">Best Value Experience</span>
+            <div class="price-header">
+              <h3>The Royal Day Out</h3>
+              <div class="price-amount">£59.50</div>
+              <div class="price-sub">Adult 3-in-1 Pass • Children: £32.00 • Under 5: Free</div>
+            </div>
+            <ul class="price-features">
+              <li><i class="fa-solid fa-circle-check"></i> Admission to <strong>The State Rooms</strong></li>
+              <li><i class="fa-solid fa-circle-check"></i> Admission to <strong>The Royal Mews</strong> (Carriages & Horses)</li>
+              <li><i class="fa-solid fa-circle-check"></i> Admission to <strong>The King's Gallery</strong> (Fine Art exhibitions)</li>
+              <li><i class="fa-solid fa-circle-check"></i> See the 260-year-old Gold State Coach</li>
+              <li><i class="fa-solid fa-circle-check"></i> Valid all day across all three sites</li>
+            </ul>
+            <a href="https://www.rct.uk/visit/buckingham-palace" target="_blank" rel="noopener noreferrer" class="btn-book-ticket">
+              Book The Royal Day Out
+            </a>
+          </div>
+
+          <!-- The Royal Mews Only -->
+          <div class="pricing-card" data-search-item>
+            <div class="price-header">
+              <h3>The Royal Mews</h3>
+              <div class="price-amount">£17.00</div>
+              <div class="price-sub">Adult • Open February through November annually</div>
+            </div>
+            <ul class="price-features">
+              <li><i class="fa-solid fa-circle-check"></i> Historic working stables and working coach houses</li>
+              <li><i class="fa-solid fa-circle-check"></i> Marvel at the gilded Gold State Coronation Coach</li>
+              <li><i class="fa-solid fa-circle-check"></i> Meet the Cleveland Bays and Windsor Grey horses</li>
+              <li><i class="fa-solid fa-circle-check"></i> Modern State motorcars (Rolls-Royce & Bentley)</li>
+              <li><i class="fa-solid fa-circle-check"></i> Open almost year-round</li>
+            </ul>
+            <a href="https://www.rct.uk/visit/the-royal-mews-buckingham-palace" target="_blank" rel="noopener noreferrer" class="btn-book-ticket">
+              Book The Royal Mews
+            </a>
+          </div>
+        </div>
+
+        <!-- Practical Visitor Rules Grid -->
+        <h3 class="royal-title" style="text-align: center; margin: 3rem 0 1.5rem; font-size: 1.6rem;">Important Visitor Guidelines</h3>
+        <div class="cards-grid-3">
+          <div class="royal-card">
+            <div class="card-icon-pill"><i class="fa-solid fa-shield-halved"></i></div>
+            <h4 class="card-title">Security & Bag Checks</h4>
+            <p class="card-desc">Airport-style security checks apply before entry. Handbags and small rucksacks are permitted. Luggage larger than 45cm x 20cm x 30cm cannot be brought inside and there are NO left-luggage lockers on-site.</p>
+          </div>
+          <div class="royal-card">
+            <div class="card-icon-pill"><i class="fa-solid fa-camera-slash"></i></div>
+            <h4 class="card-title">Photography Rules</h4>
+            <p class="card-desc">Photography and video filming are strictly prohibited inside the State Rooms to protect the collection and visitors' experience. However, photography is fully permitted outside and in the Palace Gardens!</p>
+          </div>
+          <div class="royal-card">
+            <div class="card-icon-pill"><i class="fa-solid fa-wheelchair"></i></div>
+            <h4 class="card-title">Accessibility & Buggies</h4>
+            <p class="card-desc">The State Rooms are fully step-free accessible via lift. Wheelchairs and mobility scooters are welcome (booking in advance recommended). Baby strollers must be checked at the cloakroom; free baby carriers are provided.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ====================================================================
+         SECTION 5: GETTING HERE & LONDON TRANSPORT
+         ==================================================================== -->
+    <section id="section-transport" class="app-section">
+      <div class="guide-container">
+        <header class="guide-hero-banner">
+          <span class="guide-hero-badge"><i class="fa-solid fa-map-location-dot"></i> London Navigation</span>
+          <h2 class="guide-hero-title">Getting to <span>The Palace</span></h2>
+          <p class="guide-hero-desc">
+            Buckingham Palace is located in the City of Westminster (SW1A 1AA) and is easily reached via London Underground, bus, or pleasant walks through royal parks.
+          </p>
+        </header>
+
+        <div class="cards-grid-3">
+          <div class="royal-card" data-search-item>
+            <div class="card-icon-pill"><i class="fa-solid fa-train-subway"></i></div>
+            <h3 class="card-title">Green Park Station</h3>
+            <p class="card-desc">The closest step-free tube station to the Palace, approximately 6 minutes' walk through picturesque Green Park.</p>
+            <ul class="card-details-list">
+              <li><i class="fa-solid fa-circle" style="color: #0019a8;"></i> <strong>Piccadilly Line</strong></li>
+              <li><i class="fa-solid fa-circle" style="color: #0098d4;"></i> <strong>Victoria Line</strong></li>
+              <li><i class="fa-solid fa-circle" style="color: #949699;"></i> <strong>Jubilee Line</strong></li>
+              <li><i class="fa-solid fa-wheelchair"></i> <strong>Step-free access:</strong> Yes (Lifts to street)</li>
+            </ul>
+          </div>
+
+          <div class="royal-card" data-search-item>
+            <div class="card-icon-pill"><i class="fa-solid fa-train-subway"></i></div>
+            <h3 class="card-title">St James's Park Station</h3>
+            <p class="card-desc">An 8-minute stroll along Petty France and through the scenic lakeside gardens of St James's Park with resident pelicans!</p>
+            <ul class="card-details-list">
+              <li><i class="fa-solid fa-circle" style="color: #007229;"></i> <strong>District Line</strong></li>
+              <li><i class="fa-solid fa-circle" style="color: #ffd329;"></i> <strong>Circle Line</strong></li>
+              <li><i class="fa-solid fa-crow"></i> <strong>Scenery:</strong> St James's Park Lake & Duck Island</li>
+            </ul>
+          </div>
+
+          <div class="royal-card" data-search-item>
+            <div class="card-icon-pill"><i class="fa-solid fa-train"></i></div>
+            <h3 class="card-title">Victoria Station</h3>
+            <p class="card-desc">Major mainline rail & tube interchange, 10 minutes' walk from the palace down Buckingham Palace Road.</p>
+            <ul class="card-details-list">
+              <li><i class="fa-solid fa-train"></i> <strong>National Rail:</strong> Trains to Gatwick Airport & South East</li>
+              <li><i class="fa-solid fa-bus"></i> <strong>Victoria Coach Station:</strong> Long-distance UK coaches</li>
+              <li><i class="fa-solid fa-bus-simple"></i> <strong>London Buses:</strong> Routes 11, 211, C1, C10</li>
+            </ul>
+          </div>
+        </div>
+
+        <!-- The Royal London Walking Itinerary -->
+        <h3 class="royal-title" style="text-align: center; margin: 3rem 0 1.5rem; font-size: 1.6rem;">Recommended 1-Day Royal Walking Route</h3>
+        <div class="royal-card" style="max-width: 850px; margin: 0 auto;" data-search-item>
+          <h4 style="font-size: 1.2rem; color: var(--gold-light); margin-bottom: 0.8rem;">
+            <i class="fa-solid fa-route"></i> The Classic Monarch's Walk (2.5 km • 35 mins walking)
+          </h4>
+          <p style="color: #cbd7eb; margin-bottom: 1.2rem; line-height: 1.7;">
+            Start at <strong>Trafalgar Square</strong>, pass under the historic <strong>Admiralty Arch</strong>, and stroll down the ceremonial red tarmac of <strong>The Mall</strong>. Arrive at the <strong>Queen Victoria Memorial</strong> and <strong>Buckingham Palace</strong> in time for Changing of the Guard at 11:00 AM. Afterwards, walk through <strong>St James's Park</strong> past the pelicans to <strong>Horse Guards Parade</strong>, emerge onto Whitehall past <strong>10 Downing Street</strong>, and conclude your royal walk at <strong>Westminster Abbey</strong> and <strong>Big Ben</strong>!
+          </p>
+          <div style="display: flex; gap: 0.8rem; flex-wrap: wrap;">
+            <span class="regiment-plume-tag" style="background: rgba(212,175,55,0.2); color: var(--gold-light); border: 1px solid var(--gold-primary);">
+              Trafalgar Sq
+            </span>
+            <span>➔</span>
+            <span class="regiment-plume-tag" style="background: rgba(212,175,55,0.2); color: var(--gold-light); border: 1px solid var(--gold-primary);">
+              The Mall
+            </span>
+            <span>➔</span>
+            <span class="regiment-plume-tag" style="background: rgba(200,16,46,0.3); color: #fff; border: 1px solid var(--scarlet-red);">
+              Buckingham Palace
+            </span>
+            <span>➔</span>
+            <span class="regiment-plume-tag" style="background: rgba(212,175,55,0.2); color: var(--gold-light); border: 1px solid var(--gold-primary);">
+              St James's Park
+            </span>
+            <span>➔</span>
+            <span class="regiment-plume-tag" style="background: rgba(212,175,55,0.2); color: var(--gold-light); border: 1px solid var(--gold-primary);">
+              Big Ben & Abbey
+            </span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ====================================================================
+         SECTION 6: SECRETS, FUN FACTS & INTERACTIVE QUIZ
+         ==================================================================== -->
+    <section id="section-quiz" class="app-section">
+      <div class="guide-container">
+        <header class="guide-hero-banner">
+          <span class="guide-hero-badge"><i class="fa-solid fa-lightbulb"></i> Royal Trivia</span>
+          <h2 class="guide-hero-title">Palace Secrets <span>& Quiz</span></h2>
+          <p class="guide-hero-desc">
+            Did you know Buckingham Palace has its own post office, cinema, and private cash machine? Test your knowledge with our interactive Royal Trivia Quiz!
+          </p>
+        </header>
+
+        <!-- Fast Secret Facts Grid -->
+        <div class="cards-grid-3">
+          <div class="royal-card" data-search-item>
+            <div class="card-icon-pill"><i class="fa-solid fa-building-columns"></i></div>
+            <h3 class="card-title">775 Rooms & 78 Bathrooms</h3>
+            <p class="card-desc">The palace contains 19 State Rooms, 52 royal and guest bedrooms, 188 staff bedrooms, 92 offices, and 78 bathrooms. It also houses more than 760 windows and 1,514 doors!</p>
+          </div>
+
+          <div class="royal-card" data-search-item>
+            <div class="card-icon-pill"><i class="fa-solid fa-money-bill-wave"></i></div>
+            <h3 class="card-title">Private Royal ATM</h3>
+            <p class="card-desc">Deep in the basement of Buckingham Palace stands a private cash dispensing machine (ATM) installed by Coutts & Co., the prestigious private bank of the Royal Family.</p>
+          </div>
+
+          <div class="royal-card" data-search-item>
+            <div class="card-icon-pill"><i class="fa-solid fa-clock"></i></div>
+            <h3 class="card-title">350 Historic Clocks</h3>
+            <p class="card-desc">The palace contains one of the largest collections of working horological treasures in the world. Two full-time Royal Horological Conservators wind and maintain them weekly.</p>
+          </div>
+        </div>
+
+        <!-- Interactive Royal Quiz -->
+        <div class="quiz-wrapper">
+          <h3 class="royal-title" style="text-align: center; margin-bottom: 0.5rem; color: var(--gold-light); font-size: 1.5rem;">
+            Test Your Royal Knowledge
+          </h3>
+          <p style="text-align: center; color: #a5b6d6; margin-bottom: 2rem;">Answer all 5 questions to earn your official Royal Guide Certificate!</p>
+
+          <form id="royal-quiz-form">
+            <!-- Q1 -->
+            <div class="quiz-question-block" data-question="q1">
+              <div class="quiz-q-title">1. How many total rooms are inside Buckingham Palace?</div>
+              <div class="quiz-options">
+                <label class="quiz-label"><input type="radio" name="q1" value="a"> 240 Rooms</label>
+                <label class="quiz-label"><input type="radio" name="q1" value="b"> 775 Rooms</label>
+                <label class="quiz-label"><input type="radio" name="q1" value="c"> 1,200 Rooms</label>
+              </div>
+            </div>
+
+            <!-- Q2 -->
+            <div class="quiz-question-block" data-question="q2">
+              <div class="quiz-q-title">2. In which State Room is the famous secret door hidden?</div>
+              <div class="quiz-options">
+                <label class="quiz-label"><input type="radio" name="q2" value="a"> The Throne Room</label>
+                <label class="quiz-label"><input type="radio" name="q2" value="b"> The Grand Ballroom</label>
+                <label class="quiz-label"><input type="radio" name="q2" value="c"> The White Drawing Room</label>
+              </div>
+            </div>
+
+            <!-- Q3 -->
+            <div class="quiz-question-block" data-question="q3">
+              <div class="quiz-q-title">3. Who made the first public appearance on the Royal Balcony in 1851?</div>
+              <div class="quiz-options">
+                <label class="quiz-label"><input type="radio" name="q3" value="a"> Queen Victoria</label>
+                <label class="quiz-label"><input type="radio" name="q3" value="b"> King George III</label>
+                <label class="quiz-label"><input type="radio" name="q3" value="c"> Queen Elizabeth I</label>
+              </div>
+            </div>
+
+            <!-- Q4 -->
+            <div class="quiz-question-block" data-question="q4">
+              <div class="quiz-q-title">4. What does it mean when the Royal Standard flag is flying over the palace?</div>
+              <div class="quiz-options">
+                <label class="quiz-label"><input type="radio" name="q4" value="a"> The Palace is open to public tours</label>
+                <label class="quiz-label"><input type="radio" name="q4" value="b"> His Majesty The King is currently in residence</label>
+                <label class="quiz-label"><input type="radio" name="q4" value="c"> It is an official UK bank holiday</label>
+              </div>
+            </div>
+
+            <!-- Q5 -->
+            <div class="quiz-question-block" data-question="q5">
+              <div class="quiz-q-title">5. At what time does Changing of the Guard start in the Palace forecourt?</div>
+              <div class="quiz-options">
+                <label class="quiz-label"><input type="radio" name="q5" value="a"> 9:30 AM</label>
+                <label class="quiz-label"><input type="radio" name="q5" value="b"> 12:00 PM</label>
+                <label class="quiz-label"><input type="radio" name="q5" value="c"> 11:00 AM</label>
+              </div>
+            </div>
+
+            <div style="text-align: center; margin-top: 1.5rem;">
+              <button type="button" class="btn-submit-quiz" id="btn-submit-quiz">
+                <i class="fa-solid fa-check-double"></i> Submit Quiz & See Score
+              </button>
+            </div>
+          </form>
+
+          <div id="quiz-result"></div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- SITE FOOTER -->
+  <footer class="site-footer">
+    <div class="footer-content">
+      <div class="footer-logo">
+        <i class="fa-solid fa-crown" style="color: var(--gold-primary);"></i>
+        <span>BUCKINGHAM PALACE 3D EXPLORER</span>
+      </div>
+      <p>
+        An interactive WebGL 3D architectural recreation and comprehensive tourist visitor guide to the British Monarch's London residence.
+      </p>
+      <div class="footer-links">
+        <a href="https://www.rct.uk" target="_blank" rel="noopener noreferrer">Royal Collection Trust Official</a>
+        <a href="https://www.royal.uk" target="_blank" rel="noopener noreferrer">The Official Website of The British Monarchy</a>
+        <a href="https://tfl.gov.uk" target="_blank" rel="noopener noreferrer">Transport for London (TfL)</a>
+      </div>
+      <p style="font-size: 0.78rem; opacity: 0.75; margin-top: 0.5rem;">
+        London SW1A 1AA, United Kingdom • Changing of the Guard: Mon/Wed/Fri/Sun 11:00 AM
+      </p>
+    </div>
+  </footer>
+
+  <!-- Application Logic -->
+  <script src="palace-model.js"></script>
+  <script src="main.js"></script>
+</body>
+</html>
